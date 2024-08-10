@@ -1,15 +1,7 @@
--- Anti-Recoil Script.
--- By seyed jafar yaghoubi
-
--- [INSTALLING GUIDE]
--- Please Read README.md on the below address before using this script to know how should use it:
--- https://github.com/J-Yaghoubi/Anti-Recoil
-   
--- [Attention]
--- This tool is written for educational purposes only, use it at your own risk/responsibility.
+-- Logitech-Anti-Recoil-Script.
 
 -- [LANGUAGE]
--- The script is in LUA language and has been tested on Logitech G604 mouse. 
+-- The script is in LUA language and has been tested on Logitech G604, G502 hero mouse. 
 
 -- [RESPONSIBILITY]
 -- The main target of the script is to decrease weapon recoil on the shooting PC games. You have an extra option 
@@ -35,23 +27,38 @@
 
 --------------------------------------------- User Settings -------------------------------------------------------
 
-local Activate_Key        = "numlock"     -- Turn-On numlock to active the script
+--local Activate_Key        = "numlock"     -- Turn-On numlock to active the script
+local Activate_Key        = "scrolllock"  -- Turn-On scroll lock to activate the script
 local Auto_ADS_Key        = "capslock"    -- Turn-On capslock to active Auto-ADS when you are firing
 
 local Fire_key            = 1	          -- Your Mouse Left-Click (Fire)
 local ADS_key             = 3	          -- Your Mouse Right-Click (ADS)
-local Weapon_switch_key   = 9             -- Switch between Weapon-Patterns 
+local Weapon_switch_key   = 5             -- Switch between Weapon-Patterns 
+-- mouse's key map https://www.logitech.com/assets/65517/g502-hero.pdf
 
 weapon_table = {}
-weapon_table["primary"]  = { Horizontal= -0.2, Vertical= 1, FireDelay= 7, AdsDelay= 300} -- Your Primary weapon recoil-pattern
-weapon_table["secondary"]= { Horizontal= -0.1, Vertical= 2, FireDelay= 8, AdsDelay= 130} -- Your Secondary weapon recoil-pattern
 
-local current_weapon = "primary"          -- The Recoil-pattern you want to be activated on the start
+weapon_table["primary_AK12"]  = { Horizontal= -0.1, Vertical= 2, FireDelay= 3, AdsDelay= 300} -- Your Primary weapon recoil-pattern
+weapon_table["primary_G36C"]  = { Horizontal= -0.1, Vertical= 2, FireDelay= 2, AdsDelay= 300} -- Your Primary weapon recoil-pattern
+--weapon_table["primary"]  = { Horizontal= -0.1, Vertical= 1, FireDelay= 7, AdsDelay= 300} -- Your Primary weapon recoil-pattern
+
+local current_weapon = "primary_AK12"          -- The Recoil-pattern you want to be activated on the start
 
 ------------------------------------------ END OF USER SETTINGS ---------------------------------------------------
 
-local VERSION = "0.0.1"
+local VERSION = "0.0.2"
 local script_active = true
+
+-- Finds a value in a table
+function findPositionInTable(tbl, target)
+    for key, value in pairs(tbl) do
+        if key == target then
+            OutputLogMessage("weapon found profile name: " .. key .. "\n")
+            return key
+        end
+    end
+    return nil
+end
 
 -- Random Coefficient generator
 
@@ -168,9 +175,9 @@ end
 function Initialize()
 
     ClearLog()
-    OutputLogMessage('--> Welcome to Anti-Recoil script\n')
+    OutputLogMessage('--> Logitech-Anti-Recoil-Script ;) \n')
     OutputLogMessage('--> Version: %s\n', VERSION) 
-    OutputLogMessage('--> By: Seyed Jafar Yaghoubi\n') 
+    OutputLogMessage('--> Modded by: cristianmarint original author: Seyed Jafar Yaghoubi\n') 
     OutputLogMessage('\n') 
     OutputLogMessage('Selected weapon: %s\n', current_weapon) 
     OutputLogMessage('Fire button: %s\n', Fire_key)
@@ -218,14 +225,25 @@ function OnEvent(event, arg)
 
         -- if user changed the weapon profile
 
-        if (event == "MOUSE_BUTTON_PRESSED" and arg == Weapon_switch_key) then             
-            if current_weapon == "primary" then
-                current_weapon = "secondary"
-                OutputLogMessage('Secondary weapon profile activated...\n')  
-            else
-                current_weapon = "primary"
-                OutputLogMessage('Primary weapon profile activated...\n')  
-            end    
+        if (event == "MOUSE_BUTTON_PRESSED" and arg == Weapon_switch_key) then   
+            
+            -- Cycle through weapon profiles
+            local weapon_keys = {}
+            for key in pairs(weapon_table) do
+                table.insert(weapon_keys, key)
+            end
+
+            for i, key in ipairs(weapon_keys) do
+                if key == current_weapon then
+                    current_weapon = weapon_keys[(i % #weapon_keys) + 1]
+                    break
+                end
+            end
+
+            OutputLogMessage('\n')
+            OutputLogMessage('Weapon profile activated: %s\n', current_weapon)
+            OutputLogMessage('Horizontal: %.1f, Vertical: %.1f, FireDelay: %d \n', weapon_table[current_weapon]["Horizontal"], weapon_table[current_weapon]["Vertical"], weapon_table[current_weapon]["FireDelay"])
+            OutputLogMessage('\n')
         end
 
         -- if user pressed fire-key
